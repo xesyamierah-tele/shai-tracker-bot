@@ -216,7 +216,7 @@ class CancellationRequest(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: now())
 
 
-class ♡ PayrollPeriod(Base):
+class PayrollPeriod(Base):
     __tablename__ = "payroll_periods"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     period_start: Mapped[date] = mapped_column(Date, index=True)
@@ -226,7 +226,7 @@ class ♡ PayrollPeriod(Base):
     __table_args__ = (UniqueConstraint("period_start", "period_end"),)
 
 
-class ♡ PayrollLine(Base):
+class PayrollLine(Base):
     __tablename__ = "payroll_lines"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     period_id: Mapped[int] = mapped_column(ForeignKey("payroll_periods.id"), index=True)
@@ -751,7 +751,7 @@ async def admin_dashboard_callback(update: Update, context: ContextTypes.DEFAULT
             current_rate = tier_rate(current_total, db)
             current_salary = max(Decimal("0"), current_profit * current_rate)
             periods = db.scalars(
-                select(♡ PayrollPeriod).order_by(♡ PayrollPeriod.id.desc()).limit(5)
+                select(PayrollPeriod).order_by(PayrollPeriod.id.desc()).limit(5)
             ).all()
             lines = [
                 "💰 MY PAYROLL OVERVIEW",
@@ -768,9 +768,9 @@ async def admin_dashboard_callback(update: Update, context: ContextTypes.DEFAULT
             ]
             found = False
             for period in periods:
-                payroll_line = db.scalar(select(♡ PayrollLine).where(
-                    ♡ PayrollLine.period_id == period.id,
-                    ♡ PayrollLine.admin_id == uid,
+                payroll_line = db.scalar(select(PayrollLine).where(
+                    PayrollLine.period_id == period.id,
+                    PayrollLine.admin_id == uid,
                 ))
                 if not payroll_line:
                     continue
@@ -2114,12 +2114,12 @@ async def payroll_dashboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await q.edit_message_text("Owner permission required.")
             return
     with Session() as db:
-        period = db.scalar(select(♡ PayrollPeriod).order_by(♡ PayrollPeriod.id.desc()).limit(1))
+        period = db.scalar(select(PayrollPeriod).order_by(PayrollPeriod.id.desc()).limit(1))
         if not period:
             message = "💰 PAYROLL\n\nNo payroll period has been closed yet. ♡ Payroll is generated every Friday at 11:59 PM Manila time."
             keyboard = InlineKeyboardMarkup([[InlineKeyboardButton("🏠 Main Menu", callback_data="owner:home")]])
         else:
-            lines = db.scalars(select(♡ PayrollLine).where(♡ PayrollLine.period_id == period.id).order_by(♡ PayrollLine.salary.desc())).all()
+            lines = db.scalars(select(PayrollLine).where(PayrollLine.period_id == period.id).order_by(PayrollLine.salary.desc())).all()
             line_by_admin = {line.admin_id: line for line in lines}
             admins = db.scalars(select(User).where(User.role == "admin", User.active.is_(True)).order_by(User.display_name)).all()
             parts = [f"💰 PAYROLL #{period.id}", f"Period: {period.period_start} to {period.period_end}", f"Overall payroll status: {period.status.replace('_', ' ').upper()}", "", "👥 ADMIN PAYROLL STATUS"]
@@ -2161,7 +2161,7 @@ async def payroll_action_callback(update: Update, context: ContextTypes.DEFAULT_
     _, action, pid_text = q.data.split(":")
     pid = int(pid_text)
     with Session() as db:
-        period = db.get(♡ PayrollPeriod, pid)
+        period = db.get(PayrollPeriod, pid)
         if not period:
             await q.edit_message_text("♡ Payroll period not found.")
             return
@@ -3245,11 +3245,11 @@ async def cancellation_callback(update: Update, context: ContextTypes.DEFAULT_TY
 async def payroll(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not await owner_command(update, context): return
     with Session() as db:
-        period = db.scalar(select(♡ PayrollPeriod).order_by(♡ PayrollPeriod.id.desc()).limit(1))
+        period = db.scalar(select(PayrollPeriod).order_by(PayrollPeriod.id.desc()).limit(1))
         if not period:
             await update.message.reply_text("No payroll period has been closed yet. ♡ Payroll closes every Friday at 11:59 PM Manila time.")
             return
-        lines = db.scalars(select(♡ PayrollLine).where(♡ PayrollLine.period_id == period.id).order_by(♡ PayrollLine.salary.desc())).all()
+        lines = db.scalars(select(PayrollLine).where(PayrollLine.period_id == period.id).order_by(PayrollLine.salary.desc())).all()
         text = [f"PAYROLL #{period.id} — {period.period_start} to {period.period_end}", f"Status: {period.status}"]
         for line in lines:
             user = db.get(User, line.admin_id)
@@ -3264,7 +3264,7 @@ async def approve_payroll(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     pid = int(context.args[0])
     with Session() as db:
-        p = db.get(♡ PayrollPeriod, pid)
+        p = db.get(PayrollPeriod, pid)
         if not p or p.status != "pending_owner_approval":
             await update.message.reply_text("♡ Payroll period not found or not awaiting approval.")
             return
@@ -3281,7 +3281,7 @@ async def mark_paid(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     pid = int(context.args[0])
     with Session() as db:
-        p = db.get(♡ PayrollPeriod, pid)
+        p = db.get(PayrollPeriod, pid)
         if not p or p.status != "approved":
             await update.message.reply_text("♡ Payroll must be approved before it can be marked paid.")
             return
@@ -3304,7 +3304,7 @@ async def add_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Invalid period, admin ID or bonus amount.")
         return
     with Session() as db:
-        line = db.scalar(select(♡ PayrollLine).where(♡ PayrollLine.period_id == pid, ♡ PayrollLine.admin_id == aid))
+        line = db.scalar(select(PayrollLine).where(PayrollLine.period_id == pid, PayrollLine.admin_id == aid))
         if not line:
             await update.message.reply_text("♡ Payroll line not found for that admin and period.")
             return
@@ -3522,10 +3522,10 @@ async def close_weekly_payroll(context: ContextTypes.DEFAULT_TYPE):
     start = today - timedelta(days=6)  # previous Saturday
     end = today
     with Session() as db:
-        existing = db.scalar(select(♡ PayrollPeriod).where(♡ PayrollPeriod.period_start == start, ♡ PayrollPeriod.period_end == end))
+        existing = db.scalar(select(PayrollPeriod).where(PayrollPeriod.period_start == start, PayrollPeriod.period_end == end))
         if existing:
             return
-        period = ♡ PayrollPeriod(period_start=start, period_end=end, status="pending_owner_approval")
+        period = PayrollPeriod(period_start=start, period_end=end, status="pending_owner_approval")
         db.add(period); db.flush()
         admins_rows = db.scalars(select(User).where(User.role.in_(["admin", "revoked"]))).all()
         summary = []
@@ -3536,7 +3536,7 @@ async def close_weekly_payroll(context: ContextTypes.DEFAULT_TYPE):
             profit = total_sales - total_capital
             rate = tier_rate(total_sales, db)
             salary = max(Decimal("0"), profit * rate)
-            db.add(♡ PayrollLine(
+            db.add(PayrollLine(
                 period_id=period.id, admin_id=user.telegram_id, total_sales=total_sales,
                 total_capital=total_capital, total_profit=profit, commission_rate=rate, salary=salary,
             ))
