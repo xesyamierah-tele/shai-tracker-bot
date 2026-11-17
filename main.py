@@ -216,7 +216,7 @@ class CancellationRequest(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: now())
 
 
-class PayrollPeriod(Base):
+class ♡ PayrollPeriod(Base):
     __tablename__ = "payroll_periods"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     period_start: Mapped[date] = mapped_column(Date, index=True)
@@ -226,7 +226,7 @@ class PayrollPeriod(Base):
     __table_args__ = (UniqueConstraint("period_start", "period_end"),)
 
 
-class PayrollLine(Base):
+class ♡ PayrollLine(Base):
     __tablename__ = "payroll_lines"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     period_id: Mapped[int] = mapped_column(ForeignKey("payroll_periods.id"), index=True)
@@ -359,12 +359,12 @@ async def commission_tier_selected(update: Update, context: ContextTypes.DEFAULT
     try:
         tier_id = int(q.data.rsplit(":", 1)[1])
     except (ValueError, IndexError):
-        await q.edit_message_text("Invalid commission tier. Open Commission Settings again.")
+        await q.edit_message_text("Invalid commission tier. Open ％ Commission Settings again.")
         return ConversationHandler.END
     with Session() as db:
         tier = db.get(CommissionTier, tier_id)
         if not tier:
-            await q.edit_message_text("Commission tier not found. Open Commission Settings again.")
+            await q.edit_message_text("Commission tier not found. Open ％ Commission Settings again.")
             return ConversationHandler.END
         context.user_data["commission_edit"] = {"tier_id": tier_id}
         threshold = Decimal(tier.sales_threshold)
@@ -382,7 +382,7 @@ async def commission_threshold_entered(update: Update, context: ContextTypes.DEF
         return ConversationHandler.END
     wizard = context.user_data.get("commission_edit")
     if not wizard:
-        await update.effective_message.reply_text("Commission setup expired. Open Commission Settings again.")
+        await update.effective_message.reply_text("Commission setup expired. Open ％ Commission Settings again.")
         return ConversationHandler.END
     try:
         threshold = Decimal((update.effective_message.text or "").strip().replace(",", "").replace("₱", ""))
@@ -410,7 +410,7 @@ async def commission_threshold_entered(update: Update, context: ContextTypes.DEF
         wizard["sales_threshold"] = str(threshold)
         current_rate = Decimal(tier.commission_rate) * 100
     await update.effective_message.reply_text(
-        f"Sales minimum saved for this edit: ₱{threshold:,.2f}\n"
+        f"✧ Sales minimum saved for this edit: ₱{threshold:,.2f}\n"
         f"Current commission: {current_rate:.2f}%\n\n"
         "Now send the commission percentage (0–100). Example: 35",
         reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("❌ Cancel", callback_data="commission:cancel")]]),
@@ -424,7 +424,7 @@ async def commission_rate_entered(update: Update, context: ContextTypes.DEFAULT_
         return ConversationHandler.END
     wizard = context.user_data.get("commission_edit")
     if not wizard or "sales_threshold" not in wizard:
-        await update.effective_message.reply_text("Commission setup expired. Open Commission Settings again.")
+        await update.effective_message.reply_text("Commission setup expired. Open ％ Commission Settings again.")
         context.user_data.pop("commission_edit", None)
         return ConversationHandler.END
     try:
@@ -609,19 +609,19 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def owner_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = InlineKeyboardMarkup([
         [InlineKeyboardButton("♡ Add Product", callback_data="owner:newproduct"),
-         InlineKeyboardButton("Edit Product", callback_data="owner:editproduct")],
-        [InlineKeyboardButton("Add Stock", callback_data="owner:stock"),
-         InlineKeyboardButton("Manage Profiles", callback_data="owner:addprofile")],
-        [InlineKeyboardButton("Delivery Templates", callback_data="owner:settemplate"),
-         InlineKeyboardButton("View Products", callback_data="owner:products")],
-        [InlineKeyboardButton("Stock Overview", callback_data="owner:stockview"),
-         InlineKeyboardButton("Admin Team", callback_data="owner:admins")],
-        [InlineKeyboardButton("Sales", callback_data="owner:sales"),
-         InlineKeyboardButton("Buyer Monitoring", callback_data="owner:buyers")],
-        [InlineKeyboardButton("Payroll", callback_data="owner:payroll")],
-        [InlineKeyboardButton("Commission Settings", callback_data="owner:commission")],
-        [InlineKeyboardButton("Reports & Ranking", callback_data="owner:reports"),
-         InlineKeyboardButton("Activity Log", callback_data="owner:audit")],
+         InlineKeyboardButton("✧ Edit Product", callback_data="owner:editproduct")],
+        [InlineKeyboardButton("📦 Add Stock", callback_data="owner:stock"),
+         InlineKeyboardButton("🕊️ Manage Profiles", callback_data="owner:addprofile")],
+        [InlineKeyboardButton("✉️ Delivery Templates", callback_data="owner:settemplate"),
+         InlineKeyboardButton("🤍 View Products", callback_data="owner:products")],
+        [InlineKeyboardButton("▤ Stock Overview", callback_data="owner:stockview"),
+         InlineKeyboardButton("♧ Admin Team", callback_data="owner:admins")],
+        [InlineKeyboardButton("✧ Sales", callback_data="owner:sales"),
+         InlineKeyboardButton("⌕ Buyer Monitoring", callback_data="owner:buyers")],
+        [InlineKeyboardButton("♡ Payroll", callback_data="owner:payroll")],
+        [InlineKeyboardButton("％ Commission Settings", callback_data="owner:commission")],
+        [InlineKeyboardButton("✧ Reports & Ranking", callback_data="owner:reports"),
+         InlineKeyboardButton("≋ Activity Log", callback_data="owner:audit")],
     ])
     display_name = update.effective_user.full_name if update.effective_user else "there"
     await update.effective_message.reply_text(
@@ -682,14 +682,14 @@ async def owner_dashboard_callback(update: Update, context: ContextTypes.DEFAULT
         return
     if action == "home":
         keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton("♡ Add Product", callback_data="owner:newproduct"), InlineKeyboardButton("Edit Product", callback_data="owner:editproduct")],
-            [InlineKeyboardButton("Add Stock", callback_data="owner:stock"), InlineKeyboardButton("Manage Profiles", callback_data="owner:addprofile")],
-            [InlineKeyboardButton("Delivery Templates", callback_data="owner:settemplate"), InlineKeyboardButton("View Products", callback_data="owner:products")],
-            [InlineKeyboardButton("Stock Overview", callback_data="owner:stockview"), InlineKeyboardButton("Admin Team", callback_data="owner:admins")],
-            [InlineKeyboardButton("Sales", callback_data="owner:sales"), InlineKeyboardButton("Buyer Monitoring", callback_data="owner:buyers")],
-            [InlineKeyboardButton("Payroll", callback_data="owner:payroll")],
-         [InlineKeyboardButton("Commission Settings", callback_data="owner:commission")],
-            [InlineKeyboardButton("Reports & Ranking", callback_data="owner:reports"), InlineKeyboardButton("Activity Log", callback_data="owner:audit")],
+            [InlineKeyboardButton("♡ Add Product", callback_data="owner:newproduct"), InlineKeyboardButton("✧ Edit Product", callback_data="owner:editproduct")],
+            [InlineKeyboardButton("📦 Add Stock", callback_data="owner:stock"), InlineKeyboardButton("🕊️ Manage Profiles", callback_data="owner:addprofile")],
+            [InlineKeyboardButton("✉️ Delivery Templates", callback_data="owner:settemplate"), InlineKeyboardButton("🤍 View Products", callback_data="owner:products")],
+            [InlineKeyboardButton("▤ Stock Overview", callback_data="owner:stockview"), InlineKeyboardButton("♧ Admin Team", callback_data="owner:admins")],
+            [InlineKeyboardButton("✧ Sales", callback_data="owner:sales"), InlineKeyboardButton("⌕ Buyer Monitoring", callback_data="owner:buyers")],
+            [InlineKeyboardButton("♡ Payroll", callback_data="owner:payroll")],
+         [InlineKeyboardButton("％ Commission Settings", callback_data="owner:commission")],
+            [InlineKeyboardButton("✧ Reports & Ranking", callback_data="owner:reports"), InlineKeyboardButton("≋ Activity Log", callback_data="owner:audit")],
         ])
         display_name = update.effective_user.full_name if update.effective_user else "there"
         await q.edit_message_text(f"♡ {display_name}  |  OWNER\nA little space to manage everything.", reply_markup=keyboard)
@@ -700,13 +700,13 @@ async def owner_dashboard_callback(update: Update, context: ContextTypes.DEFAULT
 
 async def admin_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("♡ New Sale", callback_data="admin:sale")],
-        [InlineKeyboardButton("Products & Prices", callback_data="admin:products"),
-         InlineKeyboardButton("Available Stock", callback_data="admin:stockview")],
-        [InlineKeyboardButton("My Report", callback_data="admin:report"),
-         InlineKeyboardButton("Sales Ranking", callback_data="admin:ranking")],
-        [InlineKeyboardButton("My Sales", callback_data="admin:mysales"),
-         InlineKeyboardButton("My Payroll", callback_data="admin:payroll")],
+        [InlineKeyboardButton("✧ New Sale", callback_data="admin:sale")],
+        [InlineKeyboardButton("🤍 Products & Prices", callback_data="admin:products"),
+         InlineKeyboardButton("▤ Available Stock", callback_data="admin:stockview")],
+        [InlineKeyboardButton("✧ My Report", callback_data="admin:report"),
+         InlineKeyboardButton("✧ ♧ Sales Ranking", callback_data="admin:ranking")],
+        [InlineKeyboardButton("My ✧ Sales", callback_data="admin:mysales"),
+         InlineKeyboardButton("My ♡ Payroll", callback_data="admin:payroll")],
     ])
     display_name = update.effective_user.full_name if update.effective_user else "there"
     await update.effective_message.reply_text(
@@ -729,13 +729,13 @@ async def admin_dashboard_callback(update: Update, context: ContextTypes.DEFAULT
         return
     if action == "home":
         keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton("♡ New Sale", callback_data="admin:sale")],
-            [InlineKeyboardButton("Products & Prices", callback_data="admin:products"),
-             InlineKeyboardButton("Available Stock", callback_data="admin:stockview")],
-            [InlineKeyboardButton("My Report", callback_data="admin:report"),
-             InlineKeyboardButton("Sales Ranking", callback_data="admin:ranking")],
-            [InlineKeyboardButton("My Sales", callback_data="admin:mysales"),
-             InlineKeyboardButton("My Payroll", callback_data="admin:payroll")],
+            [InlineKeyboardButton("✧ New Sale", callback_data="admin:sale")],
+            [InlineKeyboardButton("🤍 Products & Prices", callback_data="admin:products"),
+             InlineKeyboardButton("▤ Available Stock", callback_data="admin:stockview")],
+            [InlineKeyboardButton("✧ My Report", callback_data="admin:report"),
+             InlineKeyboardButton("✧ ♧ Sales Ranking", callback_data="admin:ranking")],
+            [InlineKeyboardButton("My ✧ Sales", callback_data="admin:mysales"),
+             InlineKeyboardButton("My ♡ Payroll", callback_data="admin:payroll")],
         ])
         display_name = update.effective_user.full_name if update.effective_user else "there"
         await q.edit_message_text(f"♡ {display_name}  |  TEAM\nYour sales workspace, kept simple.", reply_markup=keyboard)
@@ -751,13 +751,13 @@ async def admin_dashboard_callback(update: Update, context: ContextTypes.DEFAULT
             current_rate = tier_rate(current_total, db)
             current_salary = max(Decimal("0"), current_profit * current_rate)
             periods = db.scalars(
-                select(PayrollPeriod).order_by(PayrollPeriod.id.desc()).limit(5)
+                select(♡ PayrollPeriod).order_by(♡ PayrollPeriod.id.desc()).limit(5)
             ).all()
             lines = [
                 "💰 MY PAYROLL OVERVIEW",
                 f"Current week: {start} to {end}",
                 f"Completed transactions: {len(current_sales)}",
-                f"Sales: ₱{current_total:.2f}",
+                f"✧ Sales: ₱{current_total:.2f}",
                 f"Capital: ₱{current_capital:.2f}",
                 f"Profit: ₱{current_profit:.2f}",
                 f"Commission tier: {current_rate * 100:.0f}%",
@@ -768,9 +768,9 @@ async def admin_dashboard_callback(update: Update, context: ContextTypes.DEFAULT
             ]
             found = False
             for period in periods:
-                payroll_line = db.scalar(select(PayrollLine).where(
-                    PayrollLine.period_id == period.id,
-                    PayrollLine.admin_id == uid,
+                payroll_line = db.scalar(select(♡ PayrollLine).where(
+                    ♡ PayrollLine.period_id == period.id,
+                    ♡ PayrollLine.admin_id == uid,
                 ))
                 if not payroll_line:
                     continue
@@ -779,7 +779,7 @@ async def admin_dashboard_callback(update: Update, context: ContextTypes.DEFAULT
                 lines.append(
                     f"#{period.id} | {period.period_start} to {period.period_end}\n"
                     f"Status: {period.status.replace('_', ' ').upper()}\n"
-                    f"Sales: ₱{payroll_line.total_sales:.2f} | Profit: ₱{payroll_line.total_profit:.2f}\n"
+                    f"✧ Sales: ₱{payroll_line.total_sales:.2f} | Profit: ₱{payroll_line.total_profit:.2f}\n"
                     f"Commission: {payroll_line.commission_rate * 100:.0f}% | "
                     f"Salary: ₱{payroll_line.salary:.2f} | Bonus: ₱{payroll_line.bonus:.2f}\n"
                     f"Total: ₱{payout:.2f}"
@@ -848,7 +848,7 @@ async def admin_dashboard_callback(update: Update, context: ContextTypes.DEFAULT
             today_total = net_sale_total(today_sales)
         report_text = (
             f"📈 MY WEEKLY REPORT ({start:%b %d}–{end:%b %d})\n"
-            f"Completed transactions: {len(sales)}\nSales: ₱{total:.2f}\n"
+            f"Completed transactions: {len(sales)}\n✧ Sales: ₱{total:.2f}\n"
             f"Capital: ₱{capital:.2f}\nProfit: ₱{profit:.2f}\n"
             f"Commission tier: {rate*100:.0f}%\nEstimated salary: ₱{salary:.2f}\n"
             f"Weekly quota: ₱{total:.2f} / ₱500.00\n\nToday's sales: ₱{today_total:.2f}"
@@ -1379,7 +1379,7 @@ async def edit_product_choose_field(update: Update, context: ContextTypes.DEFAUL
         await q.edit_message_text("Choose the new sale mode:", reply_markup=keyboard)
         return EDIT_PRODUCT_FIELD
     if field not in EDIT_PRODUCT_FIELDS:
-        await q.edit_message_text("Invalid setting. Please open Edit Product again.")
+        await q.edit_message_text("Invalid setting. Please open ✧ Edit Product again.")
         return ConversationHandler.END
     label, kind = EDIT_PRODUCT_FIELDS[field]
     context.user_data["editing_product_field"] = field
@@ -1444,7 +1444,7 @@ async def edit_product_save_value(update: Update, context: ContextTypes.DEFAULT_
         return ConversationHandler.END
     field = context.user_data.get("editing_product_field")
     if field not in EDIT_PRODUCT_FIELDS:
-        await update.effective_message.reply_text("Edit session expired. Please tap Edit Product again.")
+        await update.effective_message.reply_text("Edit session expired. Please tap ✧ Edit Product again.")
         return ConversationHandler.END
     label, kind = EDIT_PRODUCT_FIELDS[field]
     raw = (update.effective_message.text or "").strip()
@@ -1522,7 +1522,7 @@ async def editproduct(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(f"Product #{pid} settings updated.")
 
 
-# ----- Guided Add Stock wizard -----
+# ----- Guided 📦 Add Stock wizard -----
 STOCK_PRODUCT, STOCK_EMAIL, STOCK_PASSWORD, STOCK_PROFILE, STOCK_PIN, STOCK_LIMIT, STOCK_EXPIRY, STOCK_CONFIRM = range(30, 38)
 
 async def stock_wizard_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1739,7 +1739,7 @@ async def stock_confirm_selected(update: Update, context: ContextTypes.DEFAULT_T
         return ConversationHandler.END
     wizard = context.user_data.get("stock_wizard")
     if not wizard:
-        await q.edit_message_text("Stock setup expired. Start again from Add Stock.")
+        await q.edit_message_text("Stock setup expired. Start again from 📦 Add Stock.")
         return ConversationHandler.END
     try:
         with Session() as db:
@@ -2079,7 +2079,7 @@ async def product_delete_callback(update: Update, context: ContextTypes.DEFAULT_
             sales = db.scalar(select(func.count(Sale.id)).where(Sale.product_id == pid)) or 0
             templates = db.scalar(select(func.count(DeliveryTemplate.id)).where(DeliveryTemplate.product_id == pid)) or 0
             name = product.name
-            detail = f"Stock accounts: {accounts}\nSales/history records: {sales}\nDelivery templates: {templates}"
+            detail = f"Stock accounts: {accounts}\n✧ Sales/history records: {sales}\nDelivery templates: {templates}"
         elif action == "confirm":
             name = product.name
             product.active = False
@@ -2114,12 +2114,12 @@ async def payroll_dashboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await q.edit_message_text("Owner permission required.")
             return
     with Session() as db:
-        period = db.scalar(select(PayrollPeriod).order_by(PayrollPeriod.id.desc()).limit(1))
+        period = db.scalar(select(♡ PayrollPeriod).order_by(♡ PayrollPeriod.id.desc()).limit(1))
         if not period:
-            message = "💰 PAYROLL\n\nNo payroll period has been closed yet. Payroll is generated every Friday at 11:59 PM Manila time."
+            message = "💰 PAYROLL\n\nNo payroll period has been closed yet. ♡ Payroll is generated every Friday at 11:59 PM Manila time."
             keyboard = InlineKeyboardMarkup([[InlineKeyboardButton("🏠 Main Menu", callback_data="owner:home")]])
         else:
-            lines = db.scalars(select(PayrollLine).where(PayrollLine.period_id == period.id).order_by(PayrollLine.salary.desc())).all()
+            lines = db.scalars(select(♡ PayrollLine).where(♡ PayrollLine.period_id == period.id).order_by(♡ PayrollLine.salary.desc())).all()
             line_by_admin = {line.admin_id: line for line in lines}
             admins = db.scalars(select(User).where(User.role == "admin", User.active.is_(True)).order_by(User.display_name)).all()
             parts = [f"💰 PAYROLL #{period.id}", f"Period: {period.period_start} to {period.period_end}", f"Overall payroll status: {period.status.replace('_', ' ').upper()}", "", "👥 ADMIN PAYROLL STATUS"]
@@ -2128,7 +2128,7 @@ async def payroll_dashboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 if line:
                     parts.append(
                         f"{user.display_name} — {period.status.replace('_', ' ').upper()}\n"
-                        f"Sales: ₱{line.total_sales:.2f} | Profit: ₱{line.total_profit:.2f}\n"
+                        f"✧ Sales: ₱{line.total_sales:.2f} | Profit: ₱{line.total_profit:.2f}\n"
                         f"Commission: {line.commission_rate*100:.0f}% | Salary: ₱{line.salary:.2f} | Bonus: ₱{line.bonus:.2f}"
                     )
                 else:
@@ -2141,7 +2141,7 @@ async def payroll_dashboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     parts.append(f"Former/inactive admin ID {line.admin_id} — {period.status.replace('_', ' ').upper()} | Salary: ₱{line.salary:.2f}")
             rows = []
             if period.status == "pending_owner_approval":
-                rows.append([InlineKeyboardButton("✅ Approve Payroll", callback_data=f"payroll:approve:{period.id}")])
+                rows.append([InlineKeyboardButton("✅ Approve ♡ Payroll", callback_data=f"payroll:approve:{period.id}")])
             elif period.status == "approved":
                 rows.append([InlineKeyboardButton("💸 Mark as Paid", callback_data=f"payroll:paid:{period.id}")])
             rows.append([InlineKeyboardButton("🔄 Refresh", callback_data="owner:payroll"), InlineKeyboardButton("🏠 Main Menu", callback_data="owner:home")])
@@ -2161,23 +2161,23 @@ async def payroll_action_callback(update: Update, context: ContextTypes.DEFAULT_
     _, action, pid_text = q.data.split(":")
     pid = int(pid_text)
     with Session() as db:
-        period = db.get(PayrollPeriod, pid)
+        period = db.get(♡ PayrollPeriod, pid)
         if not period:
-            await q.edit_message_text("Payroll period not found.")
+            await q.edit_message_text("♡ Payroll period not found.")
             return
         if action == "approve" and period.status == "pending_owner_approval":
             period.status = "approved"
             log_action(db, OWNER_ID, "payroll_approved", f"period_id={pid}")
-            result = f"Payroll #{pid} approved. Confirm the actual payout before marking it paid."
+            result = f"♡ Payroll #{pid} approved. Confirm the actual payout before marking it paid."
         elif action == "paid" and period.status == "approved":
             period.status = "paid"
             log_action(db, OWNER_ID, "payroll_marked_paid", f"period_id={pid}")
-            result = f"Payroll #{pid} marked as paid."
+            result = f"♡ Payroll #{pid} marked as paid."
         else:
             result = f"No change made. Current payroll status: {period.status}."
         db.commit()
     await q.edit_message_text(result, reply_markup=InlineKeyboardMarkup([
-        [InlineKeyboardButton("⬅️ Payroll", callback_data="owner:payroll")],
+        [InlineKeyboardButton("⬅️ ♡ Payroll", callback_data="owner:payroll")],
         [InlineKeyboardButton("🏠 Main Menu", callback_data="owner:home")],
     ]))
 
@@ -2430,7 +2430,7 @@ async def template_text_entered(update: Update, context: ContextTypes.DEFAULT_TY
             if wizard["kind"] not in allowed_types(product.mode):
                 context.user_data.pop("template_wizard", None)
                 await update.effective_message.reply_text(
-                    "This delivery type is no longer enabled for that product. Please open Delivery Templates again."
+                    "This delivery type is no longer enabled for that product. Please open ✉️ Delivery Templates again."
                 )
                 return ConversationHandler.END
             row = db.scalar(select(DeliveryTemplate).where(
@@ -2613,7 +2613,7 @@ async def stock_detail_callback(update: Update, context: ContextTypes.DEFAULT_TY
                     f"{nice_type(sale.sale_type)} | ₱{sale.selling_price:.2f} | "
                     f"Sold by: {admin.display_name if admin else sale.admin_id}"
                 )
-            buttons = [[InlineKeyboardButton("📜 Full Sales History", callback_data=f"stockdetail:sales:{pid}")]]
+            buttons = [[InlineKeyboardButton("📜 Full ✧ Sales History", callback_data=f"stockdetail:sales:{pid}")]]
             for account_id in deletable_account_ids:
                 buttons.append([InlineKeyboardButton(
                     f"🗑 Delete Account #{account_id}",
@@ -2659,7 +2659,7 @@ async def stock_detail_callback(update: Update, context: ContextTypes.DEFAULT_TY
         with Session() as db:
             account = db.get(Account, account_id)
             if not account:
-                await q.edit_message_text("Stock account not found. Refresh Stock Overview.")
+                await q.edit_message_text("Stock account not found. Refresh ▤ Stock Overview.")
                 return
             product = db.get(Product, account.product_id)
             slots = db.scalars(select(ProfileSlot).where(ProfileSlot.account_id == account_id)).all()
@@ -2674,7 +2674,7 @@ async def stock_detail_callback(update: Update, context: ContextTypes.DEFAULT_TY
             if linked_sales or active_reservations:
                 await q.edit_message_text(
                     f"Cannot delete Account #{account_id}. It is linked to {linked_sales} sale record(s) "
-                    f"and {active_reservations} active reservation(s). Sales history is protected."
+                    f"and {active_reservations} active reservation(s). ✧ Sales history is protected."
                 )
                 return
             email = dec(account.email_enc)
@@ -3105,7 +3105,7 @@ async def sale_finish_callback(update: Update, context: ContextTypes.DEFAULT_TYP
             await q.edit_message_text(f"Reservation {sale.transaction_code} cancelled. Stock capacity released.")
 
 
-# ----- Sales reports, refunds, payroll -----
+# ----- ✧ Sales reports, refunds, payroll -----
 async def report(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not await admin_command(update, context): return
     uid = update.effective_user.id
@@ -3182,7 +3182,7 @@ async def cancel_sale(update: Update, context: ContextTypes.DEFAULT_TYPE):
     with Session() as db:
         sale = db.get(Sale, sid, with_for_update=True)
         if not sale or sale.status != "reserved":
-            await update.message.reply_text("Only a reserved sale can be cancelled here. For a completed sale, use the owner's Stock Overview to reverse it.")
+            await update.message.reply_text("Only a reserved sale can be cancelled here. For a completed sale, use the owner's ▤ Stock Overview to reverse it.")
             return
         sale.status = "cancelled"
         sale.reserved_until = None
@@ -3245,11 +3245,11 @@ async def cancellation_callback(update: Update, context: ContextTypes.DEFAULT_TY
 async def payroll(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not await owner_command(update, context): return
     with Session() as db:
-        period = db.scalar(select(PayrollPeriod).order_by(PayrollPeriod.id.desc()).limit(1))
+        period = db.scalar(select(♡ PayrollPeriod).order_by(♡ PayrollPeriod.id.desc()).limit(1))
         if not period:
-            await update.message.reply_text("No payroll period has been closed yet. Payroll closes every Friday at 11:59 PM Manila time.")
+            await update.message.reply_text("No payroll period has been closed yet. ♡ Payroll closes every Friday at 11:59 PM Manila time.")
             return
-        lines = db.scalars(select(PayrollLine).where(PayrollLine.period_id == period.id).order_by(PayrollLine.salary.desc())).all()
+        lines = db.scalars(select(♡ PayrollLine).where(♡ PayrollLine.period_id == period.id).order_by(♡ PayrollLine.salary.desc())).all()
         text = [f"PAYROLL #{period.id} — {period.period_start} to {period.period_end}", f"Status: {period.status}"]
         for line in lines:
             user = db.get(User, line.admin_id)
@@ -3264,14 +3264,14 @@ async def approve_payroll(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     pid = int(context.args[0])
     with Session() as db:
-        p = db.get(PayrollPeriod, pid)
+        p = db.get(♡ PayrollPeriod, pid)
         if not p or p.status != "pending_owner_approval":
-            await update.message.reply_text("Payroll period not found or not awaiting approval.")
+            await update.message.reply_text("♡ Payroll period not found or not awaiting approval.")
             return
         p.status = "approved"
         log_action(db, OWNER_ID, "payroll_approved", f"period_id={pid}")
         db.commit()
-    await update.message.reply_text(f"Payroll #{pid} approved. Use /markpaid {pid} after payout.")
+    await update.message.reply_text(f"♡ Payroll #{pid} approved. Use /markpaid {pid} after payout.")
 
 
 async def mark_paid(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -3281,14 +3281,14 @@ async def mark_paid(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     pid = int(context.args[0])
     with Session() as db:
-        p = db.get(PayrollPeriod, pid)
+        p = db.get(♡ PayrollPeriod, pid)
         if not p or p.status != "approved":
-            await update.message.reply_text("Payroll must be approved before it can be marked paid.")
+            await update.message.reply_text("♡ Payroll must be approved before it can be marked paid.")
             return
         p.status = "paid"
         log_action(db, OWNER_ID, "payroll_marked_paid", f"period_id={pid}")
         db.commit()
-    await update.message.reply_text(f"Payroll #{pid} marked paid.")
+    await update.message.reply_text(f"♡ Payroll #{pid} marked paid.")
 
 
 async def add_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -3304,9 +3304,9 @@ async def add_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Invalid period, admin ID or bonus amount.")
         return
     with Session() as db:
-        line = db.scalar(select(PayrollLine).where(PayrollLine.period_id == pid, PayrollLine.admin_id == aid))
+        line = db.scalar(select(♡ PayrollLine).where(♡ PayrollLine.period_id == pid, ♡ PayrollLine.admin_id == aid))
         if not line:
-            await update.message.reply_text("Payroll line not found for that admin and period.")
+            await update.message.reply_text("♡ Payroll line not found for that admin and period.")
             return
         line.bonus = amount
         line.bonus_note = parts[3]
@@ -3522,10 +3522,10 @@ async def close_weekly_payroll(context: ContextTypes.DEFAULT_TYPE):
     start = today - timedelta(days=6)  # previous Saturday
     end = today
     with Session() as db:
-        existing = db.scalar(select(PayrollPeriod).where(PayrollPeriod.period_start == start, PayrollPeriod.period_end == end))
+        existing = db.scalar(select(♡ PayrollPeriod).where(♡ PayrollPeriod.period_start == start, ♡ PayrollPeriod.period_end == end))
         if existing:
             return
-        period = PayrollPeriod(period_start=start, period_end=end, status="pending_owner_approval")
+        period = ♡ PayrollPeriod(period_start=start, period_end=end, status="pending_owner_approval")
         db.add(period); db.flush()
         admins_rows = db.scalars(select(User).where(User.role.in_(["admin", "revoked"]))).all()
         summary = []
@@ -3536,7 +3536,7 @@ async def close_weekly_payroll(context: ContextTypes.DEFAULT_TYPE):
             profit = total_sales - total_capital
             rate = tier_rate(total_sales, db)
             salary = max(Decimal("0"), profit * rate)
-            db.add(PayrollLine(
+            db.add(♡ PayrollLine(
                 period_id=period.id, admin_id=user.telegram_id, total_sales=total_sales,
                 total_capital=total_capital, total_profit=profit, commission_rate=rate, salary=salary,
             ))
