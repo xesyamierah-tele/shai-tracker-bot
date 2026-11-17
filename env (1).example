@@ -1,0 +1,12 @@
+# Telegram BotFather token. Never commit the real value.
+BOT_TOKEN=put_your_bot_token_here
+# Numeric Telegram user ID of the owner (not username).
+OWNER_TELEGRAM_ID=123456789
+# Use the PostgreSQL connection URL supplied by Voroa or another PostgreSQL provider.
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/DATABASE
+# Generate once with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+# Keep this value permanently. Changing it makes previously stored credentials unreadable.
+ENCRYPTION_KEY=replace_with_generated_fernet_key
+TIMEZONE=Asia/Manila
+RESERVATION_MINUTES=10
+LOG_LEVEL=INFO
